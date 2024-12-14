@@ -310,14 +310,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-async function fetchVersion() {
-  try {
-    const response = await fetch("/version");
-    const data = await response.json();
-    document.getElementById(
-      "versionText"
-    ).textContent = `ADB Web Tool v${data.version} (Git SHA: ${data.git_sha})`;
-  } catch (error) {
-    console.error("Failed to fetch version:", error);
-  }
-}
+document.addEventListener("DOMContentLoaded", async () => {
+    const versionText = document.getElementById("versionText");
+
+    try {
+        const response = await fetch("/version");
+        const data = await response.json();
+
+        // Construct Flask version status
+        const flaskStatus = data.is_flask_up_to_date
+            ? " (Up-to-date)"
+            : ` (Update Available: ${data.latest_flask_version})`;
+
+        // Construct the full version information display
+        versionText.textContent = `ADB Web Tool v${data.app_version} (Git SHA: ${data.git_sha}) | Flask v${data.current_flask_version}${flaskStatus} | ADB Protocol v${data.adb_protocol_version}`;
+    } catch (error) {
+        versionText.textContent = "ADB Web Tool v1.0 (Git SHA: unknown) | Flask version: unknown | ADB Protocol: unknown";
+        console.error("Failed to fetch version information:", error);
+    }
+});
+
+

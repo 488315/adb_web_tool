@@ -5,6 +5,8 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 import platform
 import ntpath
 import requests
+import flask  # Import the Flask module to access its version
+from importlib.metadata import version, PackageNotFoundError
 
 # =============================================================================
 # Configuration and Constants
@@ -40,6 +42,35 @@ def get_git_sha():
         logging.error("Git command not found. Ensure Git is installed and in PATH.")
         return "git-not-found"
 
+def get_latest_flask_version():
+    """Fetch the latest Flask version from PyPI."""
+    try:
+        response = requests.get("https://pypi.org/pypi/Flask/json", timeout=5)
+        response.raise_for_status()
+        latest_version = response.json()["info"]["version"]
+        return latest_version
+    except requests.RequestException as e:
+        return "unknown"
+
+def get_current_flask_version():
+    """Get the currently installed Flask version."""
+    try:
+        return version("flask")
+    except PackageNotFoundError:
+        return "unknown"
+    
+def get_adb_protocol_version():
+    """Retrieve the ADB protocol version by running 'adb version'."""
+    try:
+        output = subprocess.check_output(["adb", "version"], stderr=subprocess.STDOUT).decode("utf-8").strip()
+        for line in output.splitlines():
+            if "Protocol version" in line:
+                return line.split(":")[1].strip()  # Extract protocol version after "Protocol version:"
+        return "unknown"  # If the protocol version is not found
+    except FileNotFoundError:
+        return "ADB not installed"  # If ADB is not installed or not in PATH
+    except subprocess.CalledProcessError:
+        return "error"  # If there is an error running the adb command
 
 def run_adb_command(command):
     """Run an ADB command and return the output."""
@@ -116,13 +147,19 @@ def serve_js(path):
 
 @app.route("/version", methods=["GET"])
 def get_version():
-    """Return the current version and Git SHA of the ADB Web Tool."""
-    version_info = {
-        "version": APP_VERSION,
-        "git_sha": get_git_sha()
-    }
-    return jsonify(version_info)
+    """Return app version, Git SHA, Flask version comparison, and ADB protocol version."""
+    current_flask_version = get_current_flask_version()
+    latest_flask_version = get_latest_flask_version()
+    adb_protocol_version = get_adb_protocol_version()
 
+    return jsonify({
+        "app_version": APP_VERSION,
+        "git_sha": get_git_sha(),
+        "current_flask_version": current_flask_version,
+        "latest_flask_version": latest_flask_version,
+        "is_flask_up_to_date": current_flask_version == latest_flask_version,
+        "adb_protocol_version": adb_protocol_version
+    })
 
 @app.route("/devices", methods=["GET"])
 def get_devices():
