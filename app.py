@@ -62,15 +62,20 @@ def get_current_flask_version():
 def get_adb_protocol_version():
     """Retrieve the ADB protocol version by running 'adb version'."""
     try:
-        output = subprocess.check_output(["adb", "version"], stderr=subprocess.STDOUT).decode("utf-8").strip()
+        output = subprocess.check_output(
+            ["adb", "version"],
+            stderr=subprocess.STDOUT,
+            shell=(platform.system() == "Windows")
+        ).decode("utf-8").strip()
+
         for line in output.splitlines():
-            if "Protocol version" in line:
-                return line.split(":")[1].strip()  # Extract protocol version after "Protocol version:"
-        return "unknown"  # If the protocol version is not found
+            if "Bridge version" in line:
+                return line.split(":")[-1].strip()
+        return "unknown"
     except FileNotFoundError:
-        return "ADB not installed"  # If ADB is not installed or not in PATH
-    except subprocess.CalledProcessError:
-        return "error"  # If there is an error running the adb command
+        return "ADB not installed or not in PATH"  # Handle missing ADB
+    except subprocess.CalledProcessError as e:
+        return f"ADB command error: {e.output.decode('utf-8')}"  # Handle ADB command errors
 
 def run_adb_command(command):
     """Run an ADB command and return the output."""
