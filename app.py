@@ -1,16 +1,17 @@
 import os
 import subprocess
 import logging
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import platform
 import ntpath
 import requests
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.')
 
 # Determine ADB executable based on platform
 ADB_COMMAND = "adb.exe" if platform.system() == "Windows" else "adb"
 MAGISK_LATEST_URL = "https://api.github.com/repos/topjohnwu/Magisk/releases/latest"  # GitHub API endpoint
+APP_VERSION = "1.0.0"
 
 # Configure logging
 logging.basicConfig(
@@ -18,6 +19,23 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
+
+@app.route('/javascript/<path:path>')
+def serve_js(path):
+    return send_from_directory('javascript', path)
+
+def get_git_sha():
+    """Retrieve the current Git short SHA."""
+    try:
+        git_command = ["git", "rev-parse", "--short", "HEAD"]
+        sha = subprocess.check_output(git_command, stderr=subprocess.STDOUT, shell=(platform.system() == "Windows"))
+        return sha.decode("utf-8").strip()
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to get Git SHA: {e.output.decode('utf-8')}")
+        return "unknown"
+    except FileNotFoundError:
+        logging.error("Git command not found. Ensure Git is installed and in PATH.")
+        return "git-not-found"
 
 # Helper function to run ADB commands
 def run_adb_command(command):
@@ -194,7 +212,7 @@ def reboot_device(mode):
         logging.warning(error_message)
         return jsonify({"error": error_message}), 400
 
-    valid_modes = {"recovery", "bootloader", "fastboot", "normal"}
+    valid_modes = {"recovery", "bootloader", "fastboot", "normal", "sideload", "sideload-auto-reboot", "download", "edl"}
     if mode not in valid_modes:
         error_message = f"Invalid reboot mode: {mode}"
         logging.warning(error_message)
@@ -225,6 +243,16 @@ def get_device_properties():
     logging.info(f"Fetching properties for device {device}")
     output = run_adb_command(command)
     return jsonify({"output": output})
+
+@app.route("/version", methods=["GET"])
+def get_version():
+    """Return the current version of the ADB Web Tool."""
+    version_info = {
+        "version": APP_VERSION,
+        "git_sha": get_git_sha()
+    }
+    return jsonify(version_info)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
