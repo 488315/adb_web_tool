@@ -87,6 +87,48 @@ rebootButton.addEventListener("click", () => {
     console.log("Reboot button clicked");
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    const getPropButton = document.getElementById("getPropButton");
+    const getPropDialog = document.getElementById("getPropDialog");
+    const getPropOutput = document.getElementById("getPropOutput");
+    const closePropDialog = document.getElementById("closePropDialog");
+
+    // Add click event listener to the GetProp button
+    getPropButton.addEventListener("click", async () => {
+        const device = document.getElementById("deviceDropdown").value; // Get the selected device
+
+        if (!device) {
+            logToConsole("ERROR: No device selected.", "error");
+            return;
+        }
+
+        try {
+            // Fetch getprop data
+            const response = await fetch("/getprop", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ device }),
+            });
+
+            const data = await response.json();
+
+            if (data.output) {
+                getPropOutput.textContent = data.output; // Set dialog content
+                getPropDialog.show(); // Open the dialog
+                logToConsole("Device properties fetched successfully.", "info");
+            } else if (data.error) {
+                logToConsole(`ERROR: ${data.error}`, "error");
+            }
+        } catch (error) {
+            logToConsole(`ERROR: ${error.message}`, "error");
+        }
+    });
+
+    // Close the dialog when the close button is clicked
+    closePropDialog.addEventListener("click", () => {
+        getPropDialog.close(); // Explicitly close the dialog
+    });
+});
 
 async function fetchGetProp() {
   const device = document.getElementById("deviceDropdown").value;

@@ -95,10 +95,21 @@
             <md-filled-button id="pushAdbKeysButton" raised>Push ADB Keys</md-filled-button>
         </div>
 
-        <!-- getprop -->
-        <div class="mt-4">
-            <label class="form-label">Device Info:</label>
-            <button class="btn btn-info me-2" onclick="fetchGetProp()">GetProp</button>
+        <!-- Device Info -->
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium" for="getPropButton">Device Info:</label>
+            <md-filled-button id="getPropButton" raised>GetProp</md-filled-button>
+
+            <!-- Dialog for displaying GetProp output -->
+            <md-dialog id="getPropDialog">
+                <div slot="header" class="md-typescale-title-medium">Device Properties</div>
+                <div slot="content" id="getPropOutput" style="white-space: pre-wrap; font-family: monospace;">
+                    <!-- GetProp output will appear here -->
+                </div>
+                <div slot="actions">
+                    <md-filled-button id="closePropDialog" raised>Close</md-filled-button>
+                </div>
+            </md-dialog>
         </div>
 
         <!-- Console Output -->
