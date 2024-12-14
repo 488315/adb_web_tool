@@ -83,13 +83,18 @@
             <md-filled-button id="rebootButton" raised>Reboot</md-filled-button>
         </div>
 
-        <div class="mt-4">
-            <label class="form-label">Push ADB Keys:</label>
-            <input type="text" id="adbKeysPath" class="form-control" placeholder="Enter the path to adbkey.pub (e.g., ~/.android/adbkey.pub)">
-            <button class="btn btn-primary mt-2" onclick="pushAdbKeys()">Push ADB Keys</button>
+        <!-- Push ADB Keys -->
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium" for="adbKeysPath">Push ADB Keys:</label>
+            <md-outlined-text-field 
+                id="adbKeysPath" 
+                label="ADB Key Path" 
+                placeholder="Enter the path to adbkey.pub (e.g., ~/.android/adbkey.pub)" 
+                supporting-text="Ensure the path is valid before proceeding."
+            ></md-outlined-text-field>
+            <md-filled-button id="pushAdbKeysButton" raised>Push ADB Keys</md-filled-button>
         </div>
 
-        
         <!-- getprop -->
         <div class="mt-4">
             <label class="form-label">Device Info:</label>

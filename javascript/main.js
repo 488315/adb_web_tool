@@ -116,39 +116,48 @@ async function fetchGetProp() {
   }
 }
 
-// Push ADB keys after checking recovery mode and userdata mount
-async function pushAdbKeys() {
-  const device = document.getElementById("deviceDropdown").value;
-  const adbKeysPath = document.getElementById("adbKeysPath").value.trim();
+document.addEventListener("DOMContentLoaded", () => {
+    const pushAdbKeysButton = document.getElementById("pushAdbKeysButton");
 
-  if (!device) {
-    logToConsole("ERROR: No device selected.", "error");
-    return;
-  }
-
-  if (!adbKeysPath) {
-    logToConsole("ERROR: No ADB keys path provided.", "error");
-    return;
-  }
-
-  try {
-    const response = await fetch("/check_userdata_and_push_keys", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ device, adb_keys_path: adbKeysPath }),
+    // Add click event listener to the Push ADB Keys button
+    pushAdbKeysButton.addEventListener("click", () => {
+        pushAdbKeys(); // Call the pushAdbKeys() function
     });
-    const data = await response.json();
+});
 
-    if (data.output) {
-      logToConsole(`ADB Keys pushed successfully:\n${data.output}`, "info");
-    } else if (data.error) {
-      logToConsole(`ERROR: ${data.error}`, "error");
+// Function to handle pushing ADB Keys
+async function pushAdbKeys() {
+    const device = document.getElementById("deviceDropdown").value; // Selected device
+    const adbKeysPath = document.getElementById("adbKeysPath").value.trim(); // User-entered ADB keys path
+
+    if (!device) {
+        logToConsole("ERROR: No device selected.", "error");
+        return;
     }
-  } catch (error) {
-    logToConsole(`ERROR: ${error.message}`, "error");
-  }
+
+    if (!adbKeysPath) {
+        logToConsole("ERROR: No ADB keys path provided.", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch("/check_userdata_and_push_keys", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ device, adb_keys_path: adbKeysPath }),
+        });
+        const data = await response.json();
+
+        if (data.output) {
+            logToConsole(`ADB Keys pushed successfully:\n${data.output}`, "info");
+        } else if (data.error) {
+            logToConsole(`ERROR: ${data.error}`, "error");
+        }
+    } catch (error) {
+        logToConsole(`ERROR: ${error.message}`, "error");
+    }
 }
 
 // Ensure the DOM is loaded before adding the event listener
