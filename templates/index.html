@@ -31,6 +31,12 @@
             <button class="btn btn-primary mt-2" onclick="refreshDevices()">Refresh Devices</button>
         </div>
 
+        <!-- Install Magisk -->
+        <div class="mt-4">
+            <label class="form-label">Install Magisk:</label>
+            <button class="btn btn-warning mt-2" onclick="installMagisk()">Install Latest Magisk</button>
+        </div>
+        
         <!-- Quick Reboot Options -->
         <div class="mt-4">
             <label class="form-label">Quick Reboot Options:</label>
@@ -186,6 +192,34 @@
 
             if (data.output) {
                 logToConsole(`ADB Keys pushed successfully:\n${data.output}`, "info");
+            } else if (data.error) {
+                logToConsole(`ERROR: ${data.error}`, "error");
+            }
+        } catch (error) {
+            logToConsole(`ERROR: ${error.message}`, "error");
+        }
+    }
+       // Install the latest version of Magisk
+        async function installMagisk() {
+        const device = document.getElementById('deviceDropdown').value;
+
+        if (!device) {
+            logToConsole("ERROR: No device selected.", "error");
+            return;
+        }
+
+        try {
+            const response = await fetch('/install_magisk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ device }),
+            });
+            const data = await response.json();
+
+            if (data.output) {
+                logToConsole(`Magisk installed successfully:\n${data.output}`, "info");
             } else if (data.error) {
                 logToConsole(`ERROR: ${data.error}`, "error");
             }
