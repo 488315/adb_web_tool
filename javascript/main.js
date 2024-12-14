@@ -1,6 +1,60 @@
-const consoleOutput = document.getElementById("console");
+// =============================================================================
+// Global Constants and DOM Elements
+// =============================================================================
 
-// Function to refresh the list of connected devices
+const consoleOutput = document.getElementById("consoleOutput");
+const logFile = document.getElementById("logFile");
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
+/**
+ * Logs messages to the console output with optional color coding.
+ * @param {string} message - The message to log.
+ * @param {string} [type="info"] - The type of log (e.g., "info", "error").
+ */
+function logToConsole(message, type = "info") {
+    const logEntry = document.createElement("p");
+    logEntry.textContent = message;
+
+    // Apply color coding based on the log type
+    if (type === "error") {
+        logEntry.style.color = "red";
+    } else if (type === "info") {
+        logEntry.style.color = "blue";
+    } else {
+        logEntry.style.color = "black";
+    }
+
+    consoleOutput.appendChild(logEntry);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll to the bottom
+}
+
+// =============================================================================
+// Initialization and Event Listeners
+// =============================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Load devices on page load
+    refreshDevices();
+
+    // Initialize buttons and event listeners
+    initializeRebootButton();
+    initializeGetPropButton();
+    initializePushAdbKeysButton();
+    initializeInstallMagiskButton();
+    initializeConsoleControls();
+    initializeVersionList();
+});
+
+// =============================================================================
+// Device Management
+// =============================================================================
+
+/**
+ * Refreshes the list of connected devices and updates the device dropdown.
+ */
 async function refreshDevices() {
     try {
         const response = await fetch("/devices");
@@ -12,13 +66,12 @@ async function refreshDevices() {
         if (data.devices.length > 0) {
             data.devices.forEach((device) => {
                 const option = document.createElement("md-select-option");
-                option.value = device.serial; // Use the device serial number as the value
+                option.value = device.serial;
                 option.innerHTML = `<div slot="headline">${device.serial} (${device.state})</div>`;
                 deviceDropdown.appendChild(option);
             });
             logToConsole("Devices refreshed successfully.", "info");
         } else {
-            // Add default "No Devices Found" option
             const noDevicesOption = document.createElement("md-select-option");
             noDevicesOption.value = "";
             noDevicesOption.innerHTML = `<div slot="headline">-- No Devices Found --</div>`;
@@ -30,35 +83,35 @@ async function refreshDevices() {
     }
 }
 
-// Automatically load devices when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    refreshDevices(); // Call refreshDevices() to load devices on page load
-});
+// =============================================================================
+// Reboot Functionality
+// =============================================================================
 
-
-
-// Wait for DOM to load
-document.addEventListener("DOMContentLoaded", () => {
+/**
+ * Initializes the reboot button functionality.
+ */
+function initializeRebootButton() {
     const rebootButton = document.getElementById("rebootButton");
     const rebootDropdown = document.getElementById("quickRebootDropdown");
 
-    // Attach event listener to the reboot button
     rebootButton.addEventListener("click", () => {
-        const selectedOption = rebootDropdown.value; // Get the selected value from the dropdown
+        const selectedOption = rebootDropdown.value;
 
         if (!selectedOption) {
-            logToConsole("ERROR: No reboot option selected.", "error"); // Log an error if nothing is selected
+            logToConsole("ERROR: No reboot option selected.", "error");
             return;
         }
 
-        // Call the existing reboot function
-        reboot(selectedOption); // This should already exist in your JavaScript
+        reboot(selectedOption);
     });
-});
+}
 
-// Reboot the selected device into a specific mode
+/**
+ * Reboots the selected device into the specified mode.
+ * @param {string} mode - The reboot mode (e.g., "normal", "recovery").
+ */
 async function reboot(mode) {
-    const device = document.getElementById("deviceDropdown").value; // Get selected device
+    const device = document.getElementById("deviceDropdown").value;
 
     if (!device) {
         logToConsole("ERROR: No device selected.", "error");
@@ -71,6 +124,7 @@ async function reboot(mode) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ device }),
         });
+
         const data = await response.json();
 
         if (data.output) {
@@ -83,19 +137,21 @@ async function reboot(mode) {
     }
 }
 
-rebootButton.addEventListener("click", () => {
-    console.log("Reboot button clicked");
-});
+// =============================================================================
+// GetProp Functionality
+// =============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+/**
+ * Initializes the GetProp button functionality.
+ */
+function initializeGetPropButton() {
     const getPropButton = document.getElementById("getPropButton");
     const getPropDialog = document.getElementById("getPropDialog");
     const getPropOutput = document.getElementById("getPropOutput");
     const closePropDialog = document.getElementById("closePropDialog");
 
-    // Add click event listener to the GetProp button
     getPropButton.addEventListener("click", async () => {
-        const device = document.getElementById("deviceDropdown").value; // Get the selected device
+        const device = document.getElementById("deviceDropdown").value;
 
         if (!device) {
             logToConsole("ERROR: No device selected.", "error");
@@ -103,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // Fetch getprop data
             const response = await fetch("/getprop", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -113,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (data.output) {
-                getPropOutput.textContent = data.output; // Set dialog content
+                getPropOutput.textContent = data.output;
                 getPropDialog.show(); // Open the dialog
                 logToConsole("Device properties fetched successfully.", "info");
             } else if (data.error) {
@@ -124,53 +179,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Close the dialog when the close button is clicked
     closePropDialog.addEventListener("click", () => {
-        getPropDialog.close(); // Explicitly close the dialog
+        getPropDialog.close();
     });
-});
-
-async function fetchGetProp() {
-  const device = document.getElementById("deviceDropdown").value;
-
-  if (!device) {
-    logToConsole("ERROR: No device selected.", "error");
-    return;
-  }
-
-  try {
-    const response = await fetch("/getprop", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ device }),
-    });
-    const data = await response.json();
-
-    if (data.output) {
-      logToConsole(`[GetProp Output]\n${data.output}`, "info");
-    } else if (data.error) {
-      logToConsole(`ERROR: ${data.error}`, "error");
-    }
-  } catch (error) {
-    logToConsole(`ERROR: ${error.message}`, "error");
-  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// =============================================================================
+// ADB Keys Functionality
+// =============================================================================
+
+/**
+ * Initializes the Push ADB Keys button functionality.
+ */
+function initializePushAdbKeysButton() {
     const pushAdbKeysButton = document.getElementById("pushAdbKeysButton");
 
-    // Add click event listener to the Push ADB Keys button
     pushAdbKeysButton.addEventListener("click", () => {
-        pushAdbKeys(); // Call the pushAdbKeys() function
+        pushAdbKeys();
     });
-});
+}
 
-// Function to handle pushing ADB Keys
+/**
+ * Pushes ADB keys to the selected device.
+ */
 async function pushAdbKeys() {
-    const device = document.getElementById("deviceDropdown").value; // Selected device
-    const adbKeysPath = document.getElementById("adbKeysPath").value.trim(); // User-entered ADB keys path
+    const device = document.getElementById("deviceDropdown").value;
+    const adbKeysPath = document.getElementById("adbKeysPath").value.trim();
 
     if (!device) {
         logToConsole("ERROR: No device selected.", "error");
@@ -185,11 +219,10 @@ async function pushAdbKeys() {
     try {
         const response = await fetch("/check_userdata_and_push_keys", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ device, adb_keys_path: adbKeysPath }),
         });
+
         const data = await response.json();
 
         if (data.output) {
@@ -202,17 +235,24 @@ async function pushAdbKeys() {
     }
 }
 
-// Ensure the DOM is loaded before adding the event listener
-document.addEventListener("DOMContentLoaded", () => {
+// =============================================================================
+// Magisk Installation
+// =============================================================================
+
+/**
+ * Initializes the Install Magisk button functionality.
+ */
+function initializeInstallMagiskButton() {
     const installMagiskButton = document.getElementById("installMagiskButton");
 
-    // Add click event listener to trigger Magisk installation
     installMagiskButton.addEventListener("click", () => {
-        installMagisk(); // Call the existing installMagisk() function
+        installMagisk();
     });
-});
+}
 
-// Example installMagisk function
+/**
+ * Installs the latest version of Magisk on the selected device.
+ */
 async function installMagisk() {
     const device = document.getElementById("deviceDropdown").value;
 
@@ -224,11 +264,10 @@ async function installMagisk() {
     try {
         const response = await fetch("/install_magisk", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ device }),
         });
+
         const data = await response.json();
 
         if (data.output) {
@@ -241,91 +280,60 @@ async function installMagisk() {
     }
 }
 
+// =============================================================================
+// Console and Logs Management
+// =============================================================================
 
-// Clear the console output
-function clearConsole() {
-  consoleOutput.innerHTML = "";
-  logToConsole("Console cleared.", "info");
-}
-
-// Fetch and display server logs
-async function fetchLogs() {
-  try {
-    const response = await fetch("/logs");
-    const logs = await response.text();
-    logToConsole(`[Server Logs]\n${logs}`, "info");
-  } catch (error) {
-    logToConsole(`ERROR: Could not fetch logs. ${error.message}`, "error");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const consoleOutput = document.getElementById("consoleOutput");
-    const logFile = document.getElementById("logFile");
-
+/**
+ * Initializes console and log controls.
+ */
+function initializeConsoleControls() {
     const clearConsoleButton = document.getElementById("clearConsoleButton");
     const clearLogButton = document.getElementById("clearLogButton");
     const fetchLogButton = document.getElementById("fetchLogButton");
 
-    // Clear the console output
     clearConsoleButton.addEventListener("click", () => {
-        consoleOutput.innerHTML = ""; // Clear the console output div
+        consoleOutput.innerHTML = "";
         logToConsole("Console cleared.", "info");
     });
 
-    // Clear the log file display
     clearLogButton.addEventListener("click", () => {
-        logFile.innerHTML = ""; // Clear the log file div
+        logFile.innerHTML = "";
         logToConsole("Log file cleared.", "info");
     });
 
-    // Fetch the log file from the backend
     fetchLogButton.addEventListener("click", async () => {
         try {
-            const response = await fetch("/logs"); // Replace with your actual log file endpoint
-            const logs = await response.text(); // Assume logs are returned as plain text
-            logFile.textContent = logs; // Display logs in the log file section
+            const response = await fetch("/logs");
+            const logs = await response.text();
+            logFile.textContent = logs;
             logToConsole("Log file fetched successfully.", "info");
         } catch (error) {
             logToConsole(`ERROR: Could not fetch logs. ${error.message}`, "error");
         }
     });
+}
 
-    // Utility function to log messages to the console output
-    function logToConsole(message, type = "info") {
-        const logEntry = document.createElement("p");
-        logEntry.textContent = message;
+// =============================================================================
+// Version List
+// =============================================================================
 
-        // Add styles based on the message type
-        if (type === "error") {
-            logEntry.style.color = "red";
-        } else if (type === "info") {
-            logEntry.style.color = "blue";
-        } else {
-            logEntry.style.color = "black";
-        }
-
-        consoleOutput.appendChild(logEntry); // Add log entry to the console output
-        consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll to the bottom
-    }
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
+/**
+ * Initializes the version list display.
+ */
+async function initializeVersionList() {
     const versionList = document.getElementById("versionList");
 
     try {
         const response = await fetch("/version");
         const data = await response.json();
 
-        // Construct Flask version status
         const flaskStatus = data.is_flask_up_to_date
             ? "Up-to-date"
             : `Update Available: ${data.latest_flask_version}`;
 
-        // Clear the loading text
         versionList.innerHTML = "";
 
-        // Populate version information as list items
         const versionInfo = [
             `App Version: v${data.app_version}`,
             `Git SHA: ${data.git_sha}`,
@@ -340,12 +348,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             versionList.appendChild(listItem);
         });
     } catch (error) {
-        versionList.innerHTML = ""; // Clear existing content
+        versionList.innerHTML = "";
         const errorItem = document.createElement("li");
         errorItem.textContent = "Failed to fetch version information.";
         versionList.appendChild(errorItem);
-
         console.error("Failed to fetch version information:", error);
     }
-});
-
+}
