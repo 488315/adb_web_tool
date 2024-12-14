@@ -150,34 +150,46 @@ async function pushAdbKeys() {
     logToConsole(`ERROR: ${error.message}`, "error");
   }
 }
-// Install the latest version of Magisk
-async function installMagisk() {
-  const device = document.getElementById("deviceDropdown").value;
 
-  if (!device) {
-    logToConsole("ERROR: No device selected.", "error");
-    return;
-  }
+// Ensure the DOM is loaded before adding the event listener
+document.addEventListener("DOMContentLoaded", () => {
+    const installMagiskButton = document.getElementById("installMagiskButton");
 
-  try {
-    const response = await fetch("/install_magisk", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ device }),
+    // Add click event listener to trigger Magisk installation
+    installMagiskButton.addEventListener("click", () => {
+        installMagisk(); // Call the existing installMagisk() function
     });
-    const data = await response.json();
+});
 
-    if (data.output) {
-      logToConsole(`Magisk installed successfully:\n${data.output}`, "info");
-    } else if (data.error) {
-      logToConsole(`ERROR: ${data.error}`, "error");
+// Example installMagisk function
+async function installMagisk() {
+    const device = document.getElementById("deviceDropdown").value;
+
+    if (!device) {
+        logToConsole("ERROR: No device selected.", "error");
+        return;
     }
-  } catch (error) {
-    logToConsole(`ERROR: ${error.message}`, "error");
-  }
+
+    try {
+        const response = await fetch("/install_magisk", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ device }),
+        });
+        const data = await response.json();
+
+        if (data.output) {
+            logToConsole(`Magisk installed successfully:\n${data.output}`, "info");
+        } else if (data.error) {
+            logToConsole(`ERROR: ${data.error}`, "error");
+        }
+    } catch (error) {
+        logToConsole(`ERROR: ${error.message}`, "error");
+    }
 }
+
 
 // Clear the console output
 function clearConsole() {
