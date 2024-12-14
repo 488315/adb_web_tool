@@ -12,7 +12,7 @@ const logFile = document.getElementById("logFile");
 /**
  * Logs messages to the console output with optional color coding.
  * @param {string} message - The message to log.
- * @param {string} [type="info"] - The type of log (e.g., "info", "error").
+ * @param {string} [type="info"] - The type of log (e.g., "info", "error", "warning").
  */
 function logToConsole(message, type = "info") {
     const logEntry = document.createElement("p");
@@ -23,6 +23,8 @@ function logToConsole(message, type = "info") {
         logEntry.style.color = "red";
     } else if (type === "info") {
         logEntry.style.color = "blue";
+    } else if (type === "warning") {
+        logEntry.style.color = "orange";
     } else {
         logEntry.style.color = "black";
     }
@@ -76,7 +78,7 @@ async function refreshDevices() {
             noDevicesOption.value = "";
             noDevicesOption.innerHTML = `<div slot="headline">-- No Devices Found --</div>`;
             deviceDropdown.appendChild(noDevicesOption);
-            logToConsole("No devices found.", "error");
+            logToConsole("WARNING: No devices found.", "warning");
         }
     } catch (error) {
         logToConsole(`Failed to refresh devices: ${error.message}`, "error");
