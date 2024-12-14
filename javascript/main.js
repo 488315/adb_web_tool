@@ -259,22 +259,57 @@ async function fetchLogs() {
   }
 }
 
-// Log messages to the console
-function logToConsole(message, type = "info") {
-  const logEntry = document.createElement("p");
-  logEntry.textContent = message;
+document.addEventListener("DOMContentLoaded", () => {
+    const consoleOutput = document.getElementById("consoleOutput");
+    const logFile = document.getElementById("logFile");
 
-  if (type === "error") {
-    logEntry.classList.add("text-danger");
-  } else if (type === "info") {
-    logEntry.classList.add("text-info");
-  } else {
-    logEntry.classList.add("text-dark");
-  }
+    const clearConsoleButton = document.getElementById("clearConsoleButton");
+    const clearLogButton = document.getElementById("clearLogButton");
+    const fetchLogButton = document.getElementById("fetchLogButton");
 
-  consoleOutput.appendChild(logEntry);
-  consoleOutput.scrollTop = consoleOutput.scrollHeight; // Scroll to the bottom
-}
+    // Clear the console output
+    clearConsoleButton.addEventListener("click", () => {
+        consoleOutput.innerHTML = ""; // Clear the console output div
+        logToConsole("Console cleared.", "info");
+    });
+
+    // Clear the log file display
+    clearLogButton.addEventListener("click", () => {
+        logFile.innerHTML = ""; // Clear the log file div
+        logToConsole("Log file cleared.", "info");
+    });
+
+    // Fetch the log file from the backend
+    fetchLogButton.addEventListener("click", async () => {
+        try {
+            const response = await fetch("/logs"); // Replace with your actual log file endpoint
+            const logs = await response.text(); // Assume logs are returned as plain text
+            logFile.textContent = logs; // Display logs in the log file section
+            logToConsole("Log file fetched successfully.", "info");
+        } catch (error) {
+            logToConsole(`ERROR: Could not fetch logs. ${error.message}`, "error");
+        }
+    });
+
+    // Utility function to log messages to the console output
+    function logToConsole(message, type = "info") {
+        const logEntry = document.createElement("p");
+        logEntry.textContent = message;
+
+        // Add styles based on the message type
+        if (type === "error") {
+            logEntry.style.color = "red";
+        } else if (type === "info") {
+            logEntry.style.color = "blue";
+        } else {
+            logEntry.style.color = "black";
+        }
+
+        consoleOutput.appendChild(logEntry); // Add log entry to the console output
+        consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll to the bottom
+    }
+});
+
 async function fetchVersion() {
   try {
     const response = await fetch("/version");

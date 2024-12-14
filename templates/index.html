@@ -112,16 +112,23 @@
             </md-dialog>
         </div>
 
-        <!-- Console Output -->
-        <div class="mt-4">
-            <label class="form-label">Console Output:</label>
-            <div id="console"></div>
-            <button class="btn btn-secondary mt-2" onclick="clearConsole()">Clear Console</button>
+        <!-- Console Output Section -->
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium">Console Output:</label>
+            <div id="consoleOutput" style="height: 200px; overflow-y: auto; background-color: #f8f9fa; border: 1px solid #ced4da; padding: 10px; font-family: monospace; white-space: pre-wrap;">
+                <!-- Console Output Will Be Displayed Here -->
+            </div>
+            <md-filled-button id="clearConsoleButton" raised>Clear Console</md-filled-button>
         </div>
 
-        <!-- View Server Logs -->
-        <div class="mt-4">
-            <button class="btn btn-info" onclick="fetchLogs()">View Server Logs</button>
+        <!-- Log File Section -->
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium">Log File:</label>
+            <div id="logFile" style="height: 200px; overflow-y: auto; background-color: #f8f9fa; border: 1px solid #ced4da; padding: 10px; font-family: monospace; white-space: pre-wrap;">
+                <!-- Log File Output Will Be Displayed Here -->
+            </div>
+            <md-filled-button id="clearLogButton" raised>Clear Logs</md-filled-button>
+            <md-filled-button id="fetchLogButton" raised>Fetch Logs</md-filled-button>
         </div>
 
         <footer class="footer text-muted text-start">
