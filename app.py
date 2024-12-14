@@ -77,6 +77,16 @@ def get_adb_protocol_version():
     except subprocess.CalledProcessError as e:
         return f"ADB command error: {e.output.decode('utf-8')}"  # Handle ADB command errors
 
+def get_magisk_version():
+    """Retrieve the latest Magisk version from GitHub."""
+    try:
+        response = requests.get(MAGISK_LATEST_URL, timeout=5)
+        response.raise_for_status()
+        latest_version = response.json()["tag_name"]  # Extract the version tag
+        return latest_version
+    except requests.RequestException:
+        return "unknown"  # Handle network or API errors
+
 def run_adb_command(command):
     """Run an ADB command and return the output."""
     full_command = [ADB_COMMAND] + command.split()
@@ -152,10 +162,11 @@ def serve_js(path):
 
 @app.route("/version", methods=["GET"])
 def get_version():
-    """Return app version, Git SHA, Flask version comparison, and ADB protocol version."""
+    """Return app version, Git SHA, Flask version comparison, ADB protocol version, and Magisk version."""
     current_flask_version = get_current_flask_version()
     latest_flask_version = get_latest_flask_version()
     adb_protocol_version = get_adb_protocol_version()
+    magisk_version = get_magisk_version()
 
     return jsonify({
         "app_version": APP_VERSION,
@@ -163,8 +174,10 @@ def get_version():
         "current_flask_version": current_flask_version,
         "latest_flask_version": latest_flask_version,
         "is_flask_up_to_date": current_flask_version == latest_flask_version,
-        "adb_protocol_version": adb_protocol_version
+        "adb_protocol_version": adb_protocol_version,
+        "magisk_version": magisk_version
     })
+
 
 @app.route("/devices", methods=["GET"])
 def get_devices():

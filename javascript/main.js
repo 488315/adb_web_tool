@@ -330,7 +330,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             `App Version: v${data.app_version}`,
             `Git SHA: ${data.git_sha}`,
             `Flask Version: v${data.current_flask_version} (${flaskStatus})`,
-            `ADB Protocol Version: ${data.adb_protocol_version}`
+            `ADB Protocol Version: ${data.adb_protocol_version}`,
+            `Magisk Version: ${data.magisk_version}`
         ];
 
         versionInfo.forEach(info => {
@@ -347,5 +348,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Failed to fetch version information:", error);
     }
 });
-
 
