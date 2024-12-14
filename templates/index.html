@@ -6,6 +6,20 @@
     <title>ADB Web Tool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+          "imports": {
+            "@material/web/": "https://esm.run/@material/web/"
+          }
+        }
+      </script>
+      <script type="module">
+        import '@material/web/all.js';
+        import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+    
+        document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+      </script>
     <style>
         #console {
             height: 300px;
@@ -23,12 +37,15 @@
         <h1 class="text-center">ADB Web Tool</h1>
 
         <!-- Device Selection -->
-        <div class="mt-4">
-            <label for="deviceDropdown" class="form-label">Select Device:</label>
-            <select id="deviceDropdown" class="form-select">
-                <option value="">-- No Devices Found --</option>
-            </select>
-            <button class="btn btn-primary mt-2" onclick="refreshDevices()">Refresh Devices</button>
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium" for="deviceDropdown">Select Device:</label>
+            <md-outlined-select id="deviceDropdown" label="Devices">
+                <!-- Default option -->
+                <md-select-option value="" aria-label="blank">
+                    <div slot="headline">-- No Devices Found --</div>
+                </md-select-option>
+            </md-outlined-select>
+            <md-outlined-button raised @click="refreshDevices()">Refresh Devices</md-outlined-button>
         </div>
 
         <!-- Install Magisk -->
@@ -38,17 +55,32 @@
         </div>
 
         <!-- Quick Reboot Options -->
-        <div class="mt-4">
-            <label class="form-label">Quick Reboot Options:</label>
-            <div>
-                <button class="btn btn-warning me-2" onclick="reboot('normal')">Reboot Normally</button>
-                <button class="btn btn-danger me-2" onclick="reboot('recovery')">Reboot to Recovery</button>
-                <button class="btn btn-danger me-2" onclick="reboot('bootloader')">Reboot to Bootloader</button>
-                <button class="btn btn-danger" onclick="reboot('fastboot')">Reboot to Fastboot</button>
-                <button class="btn btn-danger" onclick="reboot('edl')">Reboot to EDL</button>
-                <button class="btn btn-danger" onclick="reboot('sideload')">Reboot to Sideload</button>
-                <button class="btn btn-danger" onclick="reboot('download')">Reboot to Download</button>
-            </div>
+        <div class="mdc-card mt-4">
+            <label class="md-typescale-body-medium" for="quickRebootDropdown">Quick Reboot Options:</label>
+            <md-outlined-select id="quickRebootDropdown" label="Reboot Options">
+                <md-select-option value="normal">
+                    <div slot="headline">Reboot Normally</div>
+                </md-select-option>
+                <md-select-option value="recovery">
+                    <div slot="headline">Reboot to Recovery</div>
+                </md-select-option>
+                <md-select-option value="bootloader">
+                    <div slot="headline">Reboot to Bootloader</div>
+                </md-select-option>
+                <md-select-option value="fastboot">
+                    <div slot="headline">Reboot to Fastboot</div>
+                </md-select-option>
+                <md-select-option value="edl">
+                    <div slot="headline">Reboot to EDL</div>
+                </md-select-option>
+                <md-select-option value="sideload">
+                    <div slot="headline">Reboot to Sideload</div>
+                </md-select-option>
+                <md-select-option value="download">
+                    <div slot="headline">Reboot to Download</div>
+                </md-select-option>
+            </md-outlined-select>
+            <md-filled-button id="rebootButton" raised>Reboot</md-filled-button>
         </div>
 
         <div class="mt-4">

@@ -1,61 +1,92 @@
 const consoleOutput = document.getElementById("console");
 
-// Fetch connected devices and populate the dropdown
+// Function to refresh the list of connected devices
 async function refreshDevices() {
-  try {
-    const response = await fetch("/devices");
-    const data = await response.json();
-    const dropdown = document.getElementById("deviceDropdown");
-    dropdown.innerHTML = ""; // Clear existing options
+    try {
+        const response = await fetch("/devices");
+        const data = await response.json();
 
-    if (data.devices.length > 0) {
-      data.devices.forEach((device) => {
-        const option = document.createElement("option");
-        option.value = device.serial;
-        option.textContent = `${device.serial} (${device.state})`;
-        dropdown.appendChild(option);
-      });
-      logToConsole("Devices refreshed successfully.", "info");
-    } else {
-      const option = document.createElement("option");
-      option.value = "";
-      option.textContent = "-- No Devices Found --";
-      dropdown.appendChild(option);
-      logToConsole("No devices found.", "error");
+        const deviceDropdown = document.getElementById("deviceDropdown");
+        deviceDropdown.innerHTML = ""; // Clear existing options
+
+        if (data.devices.length > 0) {
+            data.devices.forEach((device) => {
+                const option = document.createElement("md-select-option");
+                option.value = device.serial; // Use the device serial number as the value
+                option.innerHTML = `<div slot="headline">${device.serial} (${device.state})</div>`;
+                deviceDropdown.appendChild(option);
+            });
+            logToConsole("Devices refreshed successfully.", "info");
+        } else {
+            // Add default "No Devices Found" option
+            const noDevicesOption = document.createElement("md-select-option");
+            noDevicesOption.value = "";
+            noDevicesOption.innerHTML = `<div slot="headline">-- No Devices Found --</div>`;
+            deviceDropdown.appendChild(noDevicesOption);
+            logToConsole("No devices found.", "error");
+        }
+    } catch (error) {
+        logToConsole(`Failed to refresh devices: ${error.message}`, "error");
     }
-  } catch (error) {
-    logToConsole(`Failed to refresh devices: ${error.message}`, "error");
-  }
 }
+
+// Automatically load devices when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+    refreshDevices(); // Call refreshDevices() to load devices on page load
+});
+
+
+
+// Wait for DOM to load
+document.addEventListener("DOMContentLoaded", () => {
+    const rebootButton = document.getElementById("rebootButton");
+    const rebootDropdown = document.getElementById("quickRebootDropdown");
+
+    // Attach event listener to the reboot button
+    rebootButton.addEventListener("click", () => {
+        const selectedOption = rebootDropdown.value; // Get the selected value from the dropdown
+
+        if (!selectedOption) {
+            logToConsole("ERROR: No reboot option selected.", "error"); // Log an error if nothing is selected
+            return;
+        }
+
+        // Call the existing reboot function
+        reboot(selectedOption); // This should already exist in your JavaScript
+    });
+});
 
 // Reboot the selected device into a specific mode
 async function reboot(mode) {
-  const device = document.getElementById("deviceDropdown").value;
+    const device = document.getElementById("deviceDropdown").value; // Get selected device
 
-  if (!device) {
-    logToConsole("ERROR: No device selected.", "error");
-    return;
-  }
-
-  try {
-    const response = await fetch(`/reboot/${mode}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ device }),
-    });
-    const data = await response.json();
-
-    if (data.output) {
-      logToConsole(`Rebooting to ${mode}: ${data.output}`, "info");
-    } else if (data.error) {
-      logToConsole(`ERROR: ${data.error}`, "error");
+    if (!device) {
+        logToConsole("ERROR: No device selected.", "error");
+        return;
     }
-  } catch (error) {
-    logToConsole(`ERROR: ${error.message}`, "error");
-  }
+
+    try {
+        const response = await fetch(`/reboot/${mode}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ device }),
+        });
+        const data = await response.json();
+
+        if (data.output) {
+            logToConsole(`Rebooting to ${mode}: ${data.output}`, "info");
+        } else if (data.error) {
+            logToConsole(`ERROR: ${data.error}`, "error");
+        }
+    } catch (error) {
+        logToConsole(`ERROR: ${error.message}`, "error");
+    }
 }
+
+rebootButton.addEventListener("click", () => {
+    console.log("Reboot button clicked");
+});
+
 
 async function fetchGetProp() {
   const device = document.getElementById("deviceDropdown").value;
