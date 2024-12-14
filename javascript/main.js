@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const versionText = document.getElementById("versionText");
+    const versionList = document.getElementById("versionList");
 
     try {
         const response = await fetch("/version");
@@ -319,13 +319,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Construct Flask version status
         const flaskStatus = data.is_flask_up_to_date
-            ? " (Up-to-date)"
-            : ` (Update Available: ${data.latest_flask_version})`;
+            ? "Up-to-date"
+            : `Update Available: ${data.latest_flask_version}`;
 
-        // Construct the full version information display
-        versionText.textContent = `ADB Web Tool v${data.app_version} (Git SHA: ${data.git_sha}) | Flask v${data.current_flask_version}${flaskStatus} | ADB Protocol v${data.adb_protocol_version}`;
+        // Clear the loading text
+        versionList.innerHTML = "";
+
+        // Populate version information as list items
+        const versionInfo = [
+            `App Version: v${data.app_version}`,
+            `Git SHA: ${data.git_sha}`,
+            `Flask Version: v${data.current_flask_version} (${flaskStatus})`,
+            `ADB Protocol Version: ${data.adb_protocol_version}`
+        ];
+
+        versionInfo.forEach(info => {
+            const listItem = document.createElement("li");
+            listItem.textContent = info;
+            versionList.appendChild(listItem);
+        });
     } catch (error) {
-        versionText.textContent = "ADB Web Tool v1.0 (Git SHA: unknown) | Flask version: unknown | ADB Protocol: unknown";
+        versionList.innerHTML = ""; // Clear existing content
+        const errorItem = document.createElement("li");
+        errorItem.textContent = "Failed to fetch version information.";
+        versionList.appendChild(errorItem);
+
         console.error("Failed to fetch version information:", error);
     }
 });
