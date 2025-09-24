@@ -13,6 +13,7 @@ from importlib.metadata import version, PackageNotFoundError
 # =============================================================================
 APP_VERSION = "1.0.0"
 MAGISK_LATEST_URL = "https://api.github.com/repos/topjohnwu/Magisk/releases/latest"
+MAGISK_PRE_RELEASES_URL = "https://api.github.com/repos/topjohnwu/Magisk/releases/pre-release"
 ADB_COMMAND = "adb.exe" if platform.system() == "Windows" else "adb"
 
 # Configure logging
